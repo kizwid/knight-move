@@ -14,35 +14,36 @@ public class Board {
             ' ','1','2','3',' '
     };
     private Cell[][] cells;
-    private Position position;
+    //private Position position;
     public static final int ROWS = 4;
     public static final int COLUMNS = 5;
-    private Map<Cell, List<Move>> movesByCell;
+    private Map<Character, char[]> movesByValue;
 
-    public Board(Position initialPosition) {
+    public Board() {
+        this.movesByValue = new HashMap<>();
         this.cells = new Cell[ROWS][COLUMNS];
         for(int row = 0;row < ROWS; row++){
             for(int column = 0; column < COLUMNS; column++){
                 cells[row][column] = new Cell(values[(row * COLUMNS) + column]);
             }
         }
-        this.position = new Position(0, 0);
-        this.movesByCell = new HashMap<>();
+        for(int row = 0;row < ROWS; row++){
+            for(int column = 0; column < COLUMNS; column++){
+                Cell cell = cells[row][column];
+                Position current = new Position(row, column);
+                List<Move> moves = possibleMoves(current);
+                char[] chars = new char[moves.size()];
+                for(int n = 0; n < chars.length; n++){
+                    chars[n] = at(current.applyMove(moves.get(n))).getValue();
+                }
+                movesByValue.put(cell.getValue(), chars);
+            }
+        }
     }
 
-    public Position getPosition(){
-        return Position.of(position);
-    }
     public Cell at(Position position){
         return cells[position.getRow()][position.getColumn()];
     }
-
-    public synchronized Cell move(Move move){
-        Position to = position.applyMove(move);
-        this.position = to;
-        return at(position);
-    }
-
 
     public boolean validateMove(Position from, Move move) {
         Position to = from.applyMove(move);
@@ -54,14 +55,12 @@ public class Board {
         return at(to).getType()!= Cell.Type.Empty;
     }
 
-    public List<Move> possibleMoves(Position from) {
+    private List<Move> possibleMoves(Position from) {
         Cell cell = at(from);
         if(cell.getType()== Cell.Type.Empty){
             return Collections.emptyList();
         }else {
-            List<Move> moves = movesByCell.get(cell);
-            if(moves==null){
-                movesByCell.put(cell, moves = new ArrayList<>((int)Math.pow(4,2)));
+            List<Move> moves = new ArrayList<>((int)Math.pow(4,2));
                 int[][] offsets = new int[][]{
                         {+2,+1},
                         {-2,+1},
@@ -79,9 +78,12 @@ public class Board {
                         moves.add(move);
                     }
                 }
-            }
             return moves;
         }
+    }
+
+    public char[] charsFor(char value) {
+        return movesByValue.get(value);
     }
 }
 

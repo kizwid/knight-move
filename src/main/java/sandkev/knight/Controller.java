@@ -1,11 +1,9 @@
 package sandkev.knight;
 
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by kevin on 23/06/2016.
@@ -19,100 +17,106 @@ public class Controller {
     private final Executor pool;
 
     public Controller() {
+        this.board = new Board();
         navigator = new Navigator();
         pool = Executors.newFixedThreadPool(8);
     }
 
-    private void reset(Position initialPosition) {
-        board = new Board(initialPosition);
+    private static class Data{
+        int numberOfVowels;
+        StringBuilder sb;
+        public Data() {
+            this(new StringBuilder(), 0);
+        }
+        private Data(StringBuilder sb, int numberOfVowels){
+            this.sb = sb;
+            this.numberOfVowels = numberOfVowels;
+        }
+        public boolean add(char value){
+            if(isVowel(value)){
+                numberOfVowels++;
+            }
+            if(numberOfVowels < 3){
+                sb.append(value);
+                return true;
+            }else {
+                return false;
+            }
+        }
+        private boolean isVowel(char c) {
+            return c=='A'||c=='E'||c=='I'||c=='O'||c=='U';
+        }
+        public char tail(){
+            return sb.charAt(sb.length()-1);
+        }
+        public static Data of(Data data){
+            return new Data(data.sb, data.numberOfVowels);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Data data = (Data) o;
+
+            if (numberOfVowels != data.numberOfVowels) return false;
+            return !(sb != null ? !sb.equals(data.sb) : data.sb != null);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = numberOfVowels;
+            result = 31 * result + (sb != null ? sb.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return sb.toString();
+        }
     }
+
 
     public void play(int length){
 
         Position initialPosition = new Position(0, 0);
 
-        Set<char[]> unique = new HashSet<>();
-
-        while (true) {
-            reset(initialPosition);
-            char[] sequence = new char[length];
-            for (int n = 0; n < length; n++) {
-                //List<Move> possibleMoves = Knight.generateMoves(board); //board.possibleMoves(initialPosition);
-                List<Move> possibleMoves = board.possibleMoves(initialPosition);
-
-                //pickNextMove(n, possibleMoves, navigator)
-                Move nextMove = navigator.pickNextMove(n, possibleMoves);
-                sequence[n] = board.move(nextMove).getValue();
-            }
-
-            if(unique.add(sequence)){
-                System.out.println(unique.size() + Arrays.toString(sequence));
-            }
+        Set<Data> sequences = new HashSet<>();
+        Data data = new Data();
+        data.add(board.at(initialPosition).getValue());
+        sequences.add(data);
+        for (int n = 0; n < length; n++) {
+            sequences.addAll(buildSequences(sequences));
         }
 
-
-    }
-    
-
-    public int calculate(int length) throws InterruptedException {
-
-        Position initialPosition = new Position(0, 0);
-        reset(initialPosition);
-
-        final Set<char[]> unique = new HashSet<>();
-        final AtomicInteger counter = new AtomicInteger();
-        SequenceListener collector = sequence -> {
-            if(unique.add(sequence)){
-                counter.getAndIncrement();
-                System.out.println(unique.size() + Arrays.toString(sequence));
-            }
-        };
-
-        generatePath(collector, initialPosition, 0, length, 0, new char[length]);
-
-        CountDownLatch latch = new CountDownLatch(1);
-        latch.await(5, TimeUnit.MINUTES);
-
-        return counter.get();
-
-    }
-
-    interface SequenceListener{
-        void onSequence(char[] sequence);
-    }
-
-    private void generatePath(SequenceListener collector, Position position, int level, int length, int vowels, char[] tail) {
-        //System.out.println("genPath level=" + level + " " + Arrays.toString(tail));
-        char value = board.at(position).getValue();
-        if(isVowel(value)){
-            if(vowels<MAX_VOWELS){
-                vowels++;
-                tail[level]=value;
-            }
-        }else {
-            tail[level]=value;;
+        for (Data sequence : sequences) {
+            System.out.println(sequence);
         }
-        if(level==length-1){
-            //pool.execute(() -> collector.onSequence(tail));
-            collector.onSequence(tail);
+        System.out.println("total = " + sequences.size());
 
-        }else {
-            List<Move> possibleMoves = board.possibleMoves(position);
-            for (Move move : possibleMoves) {
-                final int numberOfVowels = vowels;
-                pool.execute(() -> generatePath(collector, position.applyMove(move),level+1,length, numberOfVowels, tail));
+    }
+
+    private Set<Data> buildSequences(Set<Data> dataSets) {
+        Set<Data> paths = new HashSet<>();
+        for (Data data : dataSets) {
+            char value = data.tail();
+            char[] chars = board.charsFor(value);
+            for (char c : chars) {
+                Data next = Data.of(data);
+                if(next.add(c)){
+                    paths.add(next);
+                }
+
             }
         }
+        return paths;
     }
-
-    private boolean isVowel(char c) {
-        return c=='A'||c=='E'||c=='I'||c=='O'||c=='U';
-    }
-
 
     public static void main(String[] args) throws InterruptedException {
         Controller controller = new Controller();
-        controller.calculate(10);
+        controller.play(10);
         System.exit(0);
     }
 
