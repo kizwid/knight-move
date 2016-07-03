@@ -10,8 +10,6 @@ import java.util.concurrent.Executors;
  */
 public class Controller {
 
-    private static int MAX_VOWELS = 2;
-
     Board board;
     Navigator navigator;
     private final Executor pool;
@@ -79,7 +77,7 @@ public class Controller {
     }
 
 
-    public void play(int length){
+    public void play1(int length){
 
         Position initialPosition = new Position(0, 0);
 
@@ -114,9 +112,53 @@ public class Controller {
         return paths;
     }
 
+    public int play2(int length){
+        Position position = new Position(0, 0);
+        Cell cell = board.at(position);
+        char value = cell.getValue();
+        NodeTree root = new NodeTree(null, value);
+        return buildNode(root, 0, length);
+    }
+
+    private int buildNode(NodeTree parent, int depth, int maxDepth){
+        if(depth==maxDepth){
+            StringBuilder sb = new StringBuilder();
+            NodeTree current = parent;
+            while (current.parent!=null){
+                sb.append(current.value);
+                current=current.parent;
+            }
+            sb.reverse();
+            //System.out.println(sb.toString());
+            validate(sb.toString());
+            return 1;
+        }else {
+            char[] chars = board.charsFor(parent.value);
+            parent.add(chars);
+            int pathCount = 0;
+            for (NodeTree child : parent.children) {
+                pathCount+=buildNode(child, depth+1, maxDepth);
+            }
+            return pathCount;
+        }
+    }
+
+    private void validate(String s) {
+        int vowels = 0;
+        for (char c : s.toCharArray()) {
+            if(NodeTree.isVowel(c)){
+                vowels++;
+            }
+        }
+        if(vowels>2){
+            throw new IllegalStateException("too many vowels " + s);
+        }
+    }
+
+
     public static void main(String[] args) throws InterruptedException {
         Controller controller = new Controller();
-        controller.play(10);
+        System.out.println(controller.play2(10));;
         System.exit(0);
     }
 

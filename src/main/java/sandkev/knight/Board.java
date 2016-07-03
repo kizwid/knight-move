@@ -18,8 +18,10 @@ public class Board {
     public static final int ROWS = 4;
     public static final int COLUMNS = 5;
     private Map<Character, char[]> movesByValue;
+    private Map<Character, Cell> cellByValue;
 
     public Board() {
+        this.cellByValue = new HashMap<>();
         this.movesByValue = new HashMap<>();
         this.cells = new Cell[ROWS][COLUMNS];
         for(int row = 0;row < ROWS; row++){
@@ -37,6 +39,7 @@ public class Board {
                     chars[n] = at(current.applyMove(moves.get(n))).getValue();
                 }
                 movesByValue.put(cell.getValue(), chars);
+                cellByValue.put(cell.getValue(), cell);
             }
         }
     }
@@ -84,6 +87,10 @@ public class Board {
 
     public char[] charsFor(char value) {
         return movesByValue.get(value);
+    }
+
+    public Cell cellFor(Character c) {
+        return cellByValue.get(c);
     }
 }
 
