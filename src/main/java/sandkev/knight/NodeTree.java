@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by kevin on 02/07/2016.
+ * Created by kevin on 04/07/2016.
  */
 public class NodeTree {
     private static final int MAX_VOWEL_COUNT = 2;

@@ -4,7 +4,7 @@ package sandkev.knight;
 import java.util.*;
 
 /**
- * Created by kevin on 23/06/2016.
+ * the board knows the keys that are available to be pressed
  */
 public class Board {
     char[] values = new char[]{
@@ -20,7 +20,14 @@ public class Board {
     private Map<Character, char[]> movesByValue;
     private Map<Character, Cell> cellByValue;
 
+    public Set<Cell> getActiveCells() {
+        return activeCells;
+    }
+
+    private Set<Cell> activeCells;
+
     public Board() {
+        this.activeCells = new LinkedHashSet<>();
         this.cellByValue = new HashMap<>();
         this.movesByValue = new HashMap<>();
         this.cells = new Cell[ROWS][COLUMNS];
@@ -38,8 +45,11 @@ public class Board {
                 for(int n = 0; n < chars.length; n++){
                     chars[n] = at(current.applyMove(moves.get(n))).getValue();
                 }
-                movesByValue.put(cell.getValue(), chars);
-                cellByValue.put(cell.getValue(), cell);
+                if(cell.type!= Cell.Type.Empty){
+                    activeCells.add(cell);
+                    movesByValue.put(cell.getValue(), chars);
+                    cellByValue.put(cell.getValue(), cell);
+                }
             }
         }
     }

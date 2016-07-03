@@ -1,7 +1,7 @@
 package sandkev.knight;
 
 /**
- * Created by kevin on 28/06/2016.
+ * Created by kevin on 4/07/2016.
  */
 public class Cell {
     enum Type{Number,Letter,Empty}

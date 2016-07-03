@@ -1,7 +1,7 @@
 package sandkev.knight;
 
 /**
- * Created by kevin on 29/06/2016.
+ * Created by kevin on 4/07/2016.
  */
 public class Move {
     private int rowOffset;
