@@ -4,8 +4,8 @@ package sandkev.knight;
  * Created by kevin on 4/07/2016.
  */
 public class Position {
-    private int row;
-    private int column;
+    private final int row;
+    private final int column;
     public Position(int row, int column) {
         this.row = row;
         this.column = column;
@@ -19,7 +19,7 @@ public class Position {
         return row;
     }
 
-    public synchronized Position applyMove(Move move) {
+    public Position applyMove(Move move) {
         return new Position(row + move.getRowOffset(), column + move.getColumnOffset());
     }
 

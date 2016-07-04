@@ -3,11 +3,11 @@ package sandkev.knight;
 /**
  * Created by kevin on 4/07/2016.
  */
-public class Cell {
+public class Key {
     enum Type{Number,Letter,Empty}
-    char value;
-    Type type;
-    public Cell(char value) {
+    private final char value;
+    private final Type type;
+    public Key(char value) {
         this.value = value;
         if(value>='0' && value<='9'){
             this.type=Type.Number;
@@ -18,7 +18,7 @@ public class Cell {
         }else if(value==' '){
             this.type=Type.Empty;
         }else {
-            throw new IllegalArgumentException("Cell can only contain [0-9][a-Z[A-Z] or empty");
+            throw new IllegalArgumentException("Key can only contain [0-9][a-Z[A-Z] or empty");
         }
     }
     Type getType(){return type;}

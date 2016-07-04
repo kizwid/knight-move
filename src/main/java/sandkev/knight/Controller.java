@@ -5,68 +5,45 @@ package sandkev.knight;
  */
 public class Controller {
 
-    Board board;
+    private final KeyPad keyPad;
     public Controller() {
-        this.board = new Board();
+        this.keyPad = new KeyPad();
     }
 
     public int countPaths(int length){
 
-        for (Cell cell : board.getActiveCells()) {
-            char value = cell.getValue();
+        for (Key key : keyPad.getActiveKeys()) {
+            char value = key.getValue();
             NodeTree root = new NodeTree(null, value);
-            System.out.println("from " + value + " = " + countPaths(root, 0, length));
+            System.out.println("from " + value + " = " + countPathsRecursively(root, 0, length));
+            return 0;
         }
         return 0;
 
-/*
-        Position position = new Position(0, 0);
-        Cell cell = board.at(position);
-        char value = cell.getValue();
-        NodeTree root = new NodeTree(null, value);
-        return countPaths(root, 0, length);
-*/
     }
 
-    private int countPaths(NodeTree parent, int depth, int maxDepth){
+    private int countPathsRecursively(NodeTree parent, int depth, int maxDepth){
         if(depth==maxDepth){
-            StringBuilder sb = new StringBuilder();
-            NodeTree current = parent;
-            while (current.parent!=null){
-                sb.append(current.value);
-                current=current.parent;
-            }
-            sb.reverse();
-            //System.out.println(sb.toString());
-            validate(sb.toString());
+            //System.out.println(parent.toString());
             return 1;
         }else {
-            char[] chars = board.charsFor(parent.value);
+            char[] chars = keyPad.charsFor(parent.getValue());
             parent.add(chars);
             int pathCount = 0;
-            for (NodeTree child : parent.children) {
-                pathCount+=countPaths(child, depth + 1, maxDepth);
+            for (NodeTree child : parent.getChildren()) {
+                pathCount+= countPathsRecursively(child, depth + 1, maxDepth);
             }
             return pathCount;
         }
     }
 
-    private void validate(String s) {
-        int vowels = 0;
-        for (char c : s.toCharArray()) {
-            if(NodeTree.isVowel(c)){
-                vowels++;
-            }
-        }
-        if(vowels>2){
-            throw new IllegalStateException("too many vowels " + s);
-        }
-    }
 
 
     public static void main(String[] args) throws InterruptedException {
         Controller controller = new Controller();
-        System.out.println(controller.countPaths(10));;
+        System.out.println(controller.countPaths(16));;
+        //System.out.println(controller.countPaths(14));;
+        //System.out.println(controller.countPaths(15));;
         System.exit(0);
     }
 
