@@ -18,7 +18,7 @@ public class Key {
         }else if(value==' '){
             this.type=Type.Empty;
         }else {
-            throw new IllegalArgumentException("Key can only contain [0-9][a-Z[A-Z] or empty");
+            throw new IllegalArgumentException("Key can only contain [0-9][a-z][A-Z] or empty");
         }
     }
     Type getType(){return type;}
