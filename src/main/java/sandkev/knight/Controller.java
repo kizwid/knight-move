@@ -1,7 +1,8 @@
 package sandkev.knight;
 
-import javafx.util.Pair;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Stack;
 
 /**
@@ -14,41 +15,16 @@ public class Controller {
         this.keyPad = new KeyPad();
     }
 
-    public int countPaths(int length){
-
-        for (Key key : keyPad.getActiveKeys()) {
-            char value = key.getValue();
-            //System.out.println("from " + value + " = " + countPathsRecursively(new NodeTree(null, value), 0, length));
-            System.out.println("from " + value + " = " + countPathsRecursively(value, 0, length, NodeTree.isVowel(value)?1:0));
-            //System.out.println("from " + value + " = " + countPathsIteratively(new NodeTree(null, value), 0, length));
-            //System.out.println("from " + value + " = " + countPathsIteratively(value, 0, length));
-            return 0;
-        }
-        return 0;
-
+    public long countPaths(int length, char value){
+        return countPathsIteratively(value, 0, length);
+        //return countPathsRecursively(value, 0, length, NodeTree.isVowel(value) ? 1 : 0);
     }
 
-    private int countPathsRecursively(NodeTree parent, int depth, int maxDepth){
+    private long countPathsRecursively(char value, int depth, int maxDepth, int vowelCount){
         if(depth==maxDepth){
-            //System.out.println(parent.toString());
             return 1;
         }else {
-            char[] chars = keyPad.charsFor(parent.getValue());
-            parent.add(chars);
-            int pathCount = 0;
-            for (NodeTree child : parent.getChildren()) {
-                pathCount+= countPathsRecursively(child, depth + 1, maxDepth);
-            }
-            return pathCount;
-        }
-    }
-
-    private int countPathsRecursively(char value, int depth, int maxDepth, int vowelCount){
-        if(depth==maxDepth){
-            //System.out.println(parent.toString());
-            return 1;
-        }else {
-            int pathCount = 0;
+            long pathCount = 0;
             for (char child : keyPad.charsFor(value)) {
                 int currentVowelCount = vowelCount;
                 if(NodeTree.isVowel(child)){
@@ -58,41 +34,17 @@ public class Controller {
                     pathCount+= countPathsRecursively(child, depth + 1, maxDepth, currentVowelCount);
                 }
             }
+            if(pathCount>0 && pathCount%50000000==0){
+                System.err.println("counted upto " + pathCount);
+            }
             return pathCount;
         }
     }
 
-    private int countPathsIteratively(NodeTree parent, int depth, int maxDepth){
-
-        Stack<Pair<Integer,NodeTree>> stack = new Stack<>();
-        int count = 0;
-        if(parent == null) {
-            return count;
-        }
-        Pair<Integer,NodeTree> top = new Pair<>(depth, parent);
-        stack.push(top);
-        while(!stack.isEmpty()){
-            Pair<Integer,NodeTree> pair = stack.pop();
-            int currentDepth = pair.getKey();
-            NodeTree node = pair.getValue();
-            if(currentDepth==maxDepth){
-                count++;
-            }else {
-                char[] chars = keyPad.charsFor(node.getValue());
-                node.add(chars);
-                for (NodeTree child : node.getChildren()) {
-                    Pair<Integer,NodeTree> childItem = new Pair<>(currentDepth+1, child);
-                    stack.push(childItem);
-                }
-            }
-        }
-        return count;
-    }
-
-    private int countPathsIteratively(char value, int depth, int maxDepth){
+    private long countPathsIteratively(char value, int depth, int maxDepth){
 
         Stack<Object[]> stack = new Stack<>();
-        int count = 0;
+        long count = 0;
         stack.push(fillTuple(depth, value, NodeTree.isVowel(value)?1:0));
         while(!stack.isEmpty()){
             Object[] tuple = stack.pop();
@@ -101,7 +53,10 @@ public class Controller {
             int vowelCount = (int)tuple[2];
             if(currentDepth==maxDepth){
                 count++;
-            }else {
+                if(count%50000000==0){
+                    System.err.println("counted upto " + count + " stackSize=" + stack.size());
+                }
+            }else if(currentDepth>=0){
                 for (char child : keyPad.charsFor(node)) {
                     int currentVowelCount = vowelCount;
                     if(NodeTree.isVowel(child)){
@@ -121,11 +76,50 @@ public class Controller {
     }
 
     public static void main(String[] args) throws InterruptedException {
+
         Controller controller = new Controller();
-        System.out.println(controller.countPaths(10));;
-        System.out.println(controller.countPaths(16));;
-        System.out.println(controller.countPaths(32));;
-        System.exit(0);
+        try{
+            InputStreamReader streamReader = new InputStreamReader(System.in);
+            BufferedReader br = new BufferedReader(streamReader);
+
+            String input;
+            int length = 10;
+            char initalKey = 'A';
+            System.out.println("Please enter the sequence length eg 10|16|32");
+            NUMBER:while((input=br.readLine())!=null){
+                boolean valid = true;
+                for (char c : input.toCharArray()) {
+                    if(c<'0' || c>'9'){
+                        valid = false;
+                    }
+                }
+                if(!valid){
+                    System.out.println("a valid number is required");
+                }else {
+                    length = Integer.parseInt(input);
+                    break NUMBER;
+                }
+            }
+            System.out.println("Please enter the initial key press eg A|B|C");
+            LETTER:while((input=br.readLine())!=null){
+                char value = input.toUpperCase().charAt(0);
+                char[] charsFor = controller.keyPad.charsFor(value);
+                if(charsFor==null || charsFor.length == 0){
+                    System.out.println("a valid keypress is required");
+                }else {
+                    initalKey = value;
+                    break LETTER;
+                }
+            }
+
+            System.out.println(controller.countPaths(length, initalKey));
+            System.exit(0);
+
+        }catch(IOException io){
+            io.printStackTrace();
+        }
+
+        System.exit(1);
     }
 
 }
