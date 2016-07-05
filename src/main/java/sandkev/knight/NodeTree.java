@@ -7,7 +7,7 @@ import java.util.List;
  * Created by kevin on 04/07/2016.
  */
 public class NodeTree {
-    private static final int MAX_VOWEL_COUNT = 2;
+    public static final int MAX_VOWEL_COUNT = 2;
     private final Character value;
     private final NodeTree parent;
     private final List<NodeTree> children;
